@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import committee.nova.maced.api.ExtendedItem;
 import committee.nova.maced.api.ExtendedServerPlayer;
+import committee.nova.maced.config.MacedConfig;
 import committee.nova.maced.init.MacedSounds;
 import committee.nova.maced.util.Utilities;
 import net.minecraft.MethodsReturnNonnullByDefault;
@@ -34,16 +35,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @MethodsReturnNonnullByDefault
 @ParametersAreNonnullByDefault
 public class MaceItem extends Item implements ExtendedItem {
-    private static final double DEFAULT_ATTACK_DAMAGE = 6.0;
-    private static final double DEFAULT_ATTACK_SPEED = -2.4;
-    private static final float SMASH_ATTACK_FALL_THRESHOLD = 1.5f;
-    private static final double SMASH_ATTACK_KNOCKBACK_RADIUS = 2.5;
-    private static final double SMASH_ATTACK_KNOCKBACK_POWER = .6;
-    private static final ImmutableMultimap<Attribute, AttributeModifier> ATTRIBUTES = ImmutableMultimap
-            .<Attribute, AttributeModifier>builder()
-            .put(Attributes.ATTACK_DAMAGE, new AttributeModifier(BASE_ATTACK_DAMAGE_UUID, "Weapon modifier", DEFAULT_ATTACK_DAMAGE, AttributeModifier.Operation.ADDITION))
-            .put(Attributes.ATTACK_SPEED, new AttributeModifier(BASE_ATTACK_SPEED_UUID, "Weapon modifier", DEFAULT_ATTACK_SPEED, AttributeModifier.Operation.ADDITION))
-            .build();
+    private static ImmutableMultimap<Attribute, AttributeModifier> ATTRIBUTES;
 
     public MaceItem(Item.Properties properties) {
         super(properties);
@@ -71,7 +63,7 @@ public class MaceItem extends Item implements ExtendedItem {
     public boolean hurtEnemy(ItemStack itemStack, LivingEntity livingEntity, LivingEntity livingEntity2) {
         Utilities.hurtAndBreak(itemStack, 1, livingEntity2, EquipmentSlot.MAINHAND);
         if (livingEntity2 instanceof ServerPlayer player) {
-            if (player.fallDistance > SMASH_ATTACK_FALL_THRESHOLD) {
+            if (player.fallDistance > MacedConfig.SMASH_ATTACK_FALL_THRESHOLD.get().floatValue()) {
                 ServerLevel serverLevel = (ServerLevel) livingEntity2.level();
                 final ExtendedServerPlayer extended = (ExtendedServerPlayer) player;
                 Vec3 impact;
@@ -99,6 +91,19 @@ public class MaceItem extends Item implements ExtendedItem {
     @Override
     public Multimap<Attribute, AttributeModifier> getDefaultAttributeModifiers(EquipmentSlot equipmentSlot) {
         if (equipmentSlot == EquipmentSlot.MAINHAND) {
+            if (ATTRIBUTES == null) {
+                ATTRIBUTES = ImmutableMultimap
+                        .<Attribute, AttributeModifier>builder()
+                        .put(Attributes.ATTACK_DAMAGE, new AttributeModifier(
+                                BASE_ATTACK_DAMAGE_UUID, "Weapon modifier",
+                                MacedConfig.ATTACK_DAMAGE.get() - 1.0, AttributeModifier.Operation.ADDITION
+                        ))
+                        .put(Attributes.ATTACK_SPEED, new AttributeModifier(
+                                BASE_ATTACK_SPEED_UUID, "Weapon modifier",
+                                MacedConfig.ATTACK_SPEED.get() - 4.0, AttributeModifier.Operation.ADDITION
+                        ))
+                        .build();
+            }
             return ATTRIBUTES;
         }
         return super.getDefaultAttributeModifiers(equipmentSlot);
@@ -111,25 +116,35 @@ public class MaceItem extends Item implements ExtendedItem {
 
     @Override
     public float getAttackDamageBonus(Player player, float f) {
-        return player.fallDistance > SMASH_ATTACK_FALL_THRESHOLD ? f * 0.5f * player.fallDistance : 0.0f;
+        return player.fallDistance > MacedConfig.SMASH_ATTACK_FALL_THRESHOLD.get().floatValue() ? f * 0.5f * player.fallDistance : 0.0f;
     }
 
     private void knockback(Level level, Player player, Entity entity) {
         level.getEntitiesOfClass(
                 LivingEntity.class,
-                entity.getBoundingBox().inflate(SMASH_ATTACK_KNOCKBACK_RADIUS),
-                livingEntity -> livingEntity != player && livingEntity != entity && !entity.isAlliedTo(livingEntity) && (!(livingEntity instanceof ArmorStand) || !((ArmorStand) livingEntity).isMarker()) && entity.distanceToSqr(livingEntity) <= Math.pow(SMASH_ATTACK_KNOCKBACK_RADIUS, 2.0)
+                entity.getBoundingBox().inflate(MacedConfig.SMASH_ATTACK_KNOCKBACK_RADIUS.get()),
+                livingEntity -> livingEntity != player &&
+                        livingEntity != entity &&
+                        !entity.isAlliedTo(livingEntity) &&
+                        (!(livingEntity instanceof ArmorStand) || !((ArmorStand) livingEntity).isMarker()) &&
+                        entity.distanceToSqr(livingEntity) <= Math.pow(MacedConfig.SMASH_ATTACK_KNOCKBACK_RADIUS.get(), 2.0)
         ).forEach(livingEntity -> {
             Vec3 vec3 = livingEntity.position().subtract(entity.position());
-            double d = (SMASH_ATTACK_KNOCKBACK_RADIUS - vec3.length()) * SMASH_ATTACK_KNOCKBACK_POWER * (1.0 - livingEntity.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE));
+            double d = (MacedConfig.SMASH_ATTACK_KNOCKBACK_RADIUS.get() - vec3.length()) *
+                    MacedConfig.SMASH_ATTACK_KNOCKBACK_POWER.get() *
+                    (1.0 - livingEntity.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE));
             Vec3 vec32 = vec3.normalize().scale(d);
             if (d > 0.0) {
-                livingEntity.push(vec32.x, SMASH_ATTACK_KNOCKBACK_POWER, vec32.z);
+                livingEntity.push(vec32.x, MacedConfig.SMASH_ATTACK_KNOCKBACK_POWER.get(), vec32.z);
                 if (level instanceof ServerLevel serverLevel) {
                     BlockPos blockPos = livingEntity.getOnPos();
                     Vec3 vec33 = blockPos.getCenter().add(0.0, 0.5, 0.0);
                     int i = (int) (100.0 * d);
-                    serverLevel.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, serverLevel.getBlockState(blockPos)), vec33.x, vec33.y, vec33.z, i, 0.3f, 0.3f, 0.3f, 0.15f);
+                    serverLevel.sendParticles(
+                            new BlockParticleOption(ParticleTypes.BLOCK, serverLevel.getBlockState(blockPos)),
+                            vec33.x, vec33.y, vec33.z,
+                            i, 0.3f, 0.3f, 0.3f, 0.15f
+                    );
                 }
             }
         });
