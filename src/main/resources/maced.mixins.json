@@ -8,8 +8,6 @@
     "MixinPlayer",
     "MixinServerPlayer"
   ],
-  "client": [
-  ],
   "injectors": {
     "defaultRequire": 1
   }
