@@ -2,15 +2,14 @@ package committee.nova.maced.mixin;
 
 import committee.nova.maced.api.ExtendedItem;
 import committee.nova.maced.api.ExtendedPlayer;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.Hand;
+import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -19,15 +18,15 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(Player.class)
+@Mixin(PlayerEntity.class)
 public abstract class MixinPlayer extends LivingEntity implements ExtendedPlayer {
     @Unique
-    private Vec3 maced$currentImpulseImpactPos;
+    private Vector3d maced$currentImpulseImpactPos;
 
     @Unique
     private boolean maced$ignoreFallDamageFromCurrentImpulse;
 
-    protected MixinPlayer(EntityType<? extends LivingEntity> t, Level l) {
+    protected MixinPlayer(EntityType<? extends LivingEntity> t, World l) {
         super(t, l);
     }
 
@@ -35,24 +34,24 @@ public abstract class MixinPlayer extends LivingEntity implements ExtendedPlayer
             method = "attack",
             at = @At(
                     value = "FIELD",
-                    target = "Lnet/minecraft/world/entity/player/Player;fallDistance:F"
+                    target = "Lnet/minecraft/entity/player/PlayerEntity;fallDistance:F"
             ),
             ordinal = 0
     )
     private float modify$attack(float value) {
-        final Item item = this.getItemInHand(InteractionHand.MAIN_HAND).getItem();
-        if (!(item instanceof ExtendedItem extended)) return value;
-        return value + extended.getAttackDamageBonus((Player) (Object) this, value);
+        final Item item = this.getItemInHand(Hand.MAIN_HAND).getItem();
+        if (!(item instanceof ExtendedItem)) return value;
+        return value + ((ExtendedItem) item).getAttackDamageBonus((PlayerEntity) (Object) this, value);
     }
 
     @Inject(
             method = "causeFallDamage",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/world/entity/LivingEntity;causeFallDamage(FFLnet/minecraft/world/damagesource/DamageSource;)Z"
+                    target = "Lnet/minecraft/entity/LivingEntity;causeFallDamage(FF)Z"
             ),
             cancellable = true)
-    private void inject$causeFallDamage(float f1, float f2, DamageSource dmgSrc, CallbackInfoReturnable<Boolean> cir) {
+    private void inject$causeFallDamage(float f1, float f2, CallbackInfoReturnable<Boolean> cir) {
         if (this.maced$ignoreFallDamageFromCurrentImpulse && this.maced$currentImpulseImpactPos != null) {
             double d = this.maced$currentImpulseImpactPos.y;
             this.maced$resetCurrentImpulseContext();
@@ -60,14 +59,14 @@ public abstract class MixinPlayer extends LivingEntity implements ExtendedPlayer
                 cir.setReturnValue(false);
                 return;
             }
-            cir.setReturnValue(super.causeFallDamage((float) (d - this.getY()), f2, dmgSrc));
+            cir.setReturnValue(super.causeFallDamage((float) (d - this.getY()), f2));
         }
     }
 
     @Inject(method = "addAdditionalSaveData", at = @At("TAIL"))
-    private void inject$addAdditionalSaveData(CompoundTag tag, CallbackInfo ci) {
+    private void inject$addAdditionalSaveData(CompoundNBT tag, CallbackInfo ci) {
         if (this.maced$currentImpulseImpactPos != null) {
-            final CompoundTag vec = new CompoundTag();
+            final CompoundNBT vec = new CompoundNBT();
             vec.putDouble("x", this.maced$currentImpulseImpactPos.x);
             vec.putDouble("y", this.maced$currentImpulseImpactPos.y);
             vec.putDouble("z", this.maced$currentImpulseImpactPos.z);
@@ -77,10 +76,10 @@ public abstract class MixinPlayer extends LivingEntity implements ExtendedPlayer
     }
 
     @Inject(method = "readAdditionalSaveData", at = @At("TAIL"))
-    private void inject$readAdditionalSaveData(CompoundTag tag, CallbackInfo ci) {
+    private void inject$readAdditionalSaveData(CompoundNBT tag, CallbackInfo ci) {
         if (tag.contains("current_explosion_impact_pos", 10)) {
-            final CompoundTag vec = tag.getCompound("current_explosion_impact_pos");
-            this.maced$currentImpulseImpactPos = new Vec3(
+            final CompoundNBT vec = tag.getCompound("current_explosion_impact_pos");
+            this.maced$currentImpulseImpactPos = new Vector3d(
                     vec.getDouble("x"),
                     vec.getDouble("y"),
                     vec.getDouble("z")
@@ -90,12 +89,12 @@ public abstract class MixinPlayer extends LivingEntity implements ExtendedPlayer
     }
 
     @Override
-    public Vec3 maced$getCurrentImpulseImpactPos() {
+    public Vector3d maced$getCurrentImpulseImpactPos() {
         return maced$currentImpulseImpactPos;
     }
 
     @Override
-    public void maced$setCurrentImpulseImpactPos(Vec3 impactPos) {
+    public void maced$setCurrentImpulseImpactPos(Vector3d impactPos) {
         this.maced$currentImpulseImpactPos = impactPos;
     }
 

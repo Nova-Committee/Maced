@@ -1,13 +1,15 @@
 package committee.nova.maced.api;
 
-import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.Nullable;
+
+import net.minecraft.util.math.vector.Vector3d;
+
+import javax.annotation.Nullable;
 
 public interface ExtendedPlayer {
     @Nullable
-    Vec3 maced$getCurrentImpulseImpactPos();
+    Vector3d maced$getCurrentImpulseImpactPos();
 
-    void maced$setCurrentImpulseImpactPos(Vec3 impactPos);
+    void maced$setCurrentImpulseImpactPos(Vector3d impactPos);
 
     boolean maced$shouldIgnoreFallDamageFromCurrentImpulse();
 

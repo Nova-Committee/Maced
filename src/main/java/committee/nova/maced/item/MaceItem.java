@@ -7,28 +7,28 @@ import committee.nova.maced.api.ExtendedServerPlayer;
 import committee.nova.maced.config.MacedConfig;
 import committee.nova.maced.init.MacedSounds;
 import committee.nova.maced.util.Utilities;
-import net.minecraft.MethodsReturnNonnullByDefault;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.BlockParticleOption;
-import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
-import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.decoration.ArmorStand;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.Vec3;
+import mcp.MethodsReturnNonnullByDefault;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.ai.attributes.Attribute;
+import net.minecraft.entity.ai.attributes.AttributeModifier;
+import net.minecraft.entity.ai.attributes.Attributes;
+import net.minecraft.entity.item.ArmorStandEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.inventory.EquipmentSlotType;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.particles.BlockParticleData;
+import net.minecraft.particles.ParticleTypes;
+import net.minecraft.util.SoundCategory;
+import net.minecraft.util.SoundEvent;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.world.World;
+import net.minecraft.world.server.ServerWorld;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -42,7 +42,7 @@ public class MaceItem extends Item implements ExtendedItem {
     }
 
     @Override
-    public boolean canAttackBlock(BlockState blockState, Level level, BlockPos blockPos, Player player) {
+    public boolean canAttackBlock(BlockState blockState, World level, BlockPos blockPos, PlayerEntity player) {
         return !player.isCreative();
     }
 
@@ -52,21 +52,22 @@ public class MaceItem extends Item implements ExtendedItem {
     }
 
     @Override
-    public boolean mineBlock(ItemStack stack, Level level, BlockState state, BlockPos pos, LivingEntity entity) {
+    public boolean mineBlock(ItemStack stack, World level, BlockState state, BlockPos pos, LivingEntity entity) {
         if (state.getDestroySpeed(level, pos) != 0.0F) {
-            stack.hurtAndBreak(2, entity, (e) -> e.broadcastBreakEvent(EquipmentSlot.MAINHAND));
+            stack.hurtAndBreak(2, entity, (e) -> e.broadcastBreakEvent(EquipmentSlotType.MAINHAND));
         }
         return true;
     }
 
     @Override
     public boolean hurtEnemy(ItemStack itemStack, LivingEntity livingEntity, LivingEntity livingEntity2) {
-        Utilities.hurtAndBreak(itemStack, 1, livingEntity2, EquipmentSlot.MAINHAND);
-        if (livingEntity2 instanceof ServerPlayer player) {
+        Utilities.hurtAndBreak(itemStack, 1, livingEntity2, EquipmentSlotType.MAINHAND);
+        if (livingEntity2 instanceof ServerPlayerEntity) {
+            final ServerPlayerEntity player = (ServerPlayerEntity) livingEntity2;
             if (player.fallDistance > MacedConfig.SMASH_ATTACK_FALL_THRESHOLD.get().floatValue()) {
-                ServerLevel serverLevel = (ServerLevel) livingEntity2.level;
+                ServerWorld serverLevel = (ServerWorld) livingEntity2.level;
                 final ExtendedServerPlayer extended = (ExtendedServerPlayer) player;
-                Vec3 impact;
+                Vector3d impact;
                 if (
                         !extended.maced$shouldIgnoreFallDamageFromCurrentImpulse() ||
                                 (impact = extended.maced$getCurrentImpulseImpactPos()) == null ||
@@ -78,9 +79,9 @@ public class MaceItem extends Item implements ExtendedItem {
                 if (livingEntity.isOnGround()) {
                     extended.maced$setSpawnExtraParticlesOnFall(true);
                     SoundEvent soundEvent = player.fallDistance > 5.0f ? MacedSounds.MACE_SMASH_GROUND_HEAVY.get() : MacedSounds.MACE_SMASH_GROUND.get();
-                    serverLevel.playSound(null, player.getX(), player.getY(), player.getZ(), soundEvent, SoundSource.NEUTRAL, 1.0f, 1.0f);
+                    serverLevel.playSound(null, player.getX(), player.getY(), player.getZ(), soundEvent, SoundCategory.NEUTRAL, 1.0f, 1.0f);
                 } else {
-                    serverLevel.playSound(null, player.getX(), player.getY(), player.getZ(), MacedSounds.MACE_SMASH_AIR.get(), SoundSource.NEUTRAL, 1.0f, 1.0f);
+                    serverLevel.playSound(null, player.getX(), player.getY(), player.getZ(), MacedSounds.MACE_SMASH_AIR.get(), SoundCategory.NEUTRAL, 1.0f, 1.0f);
                 }
                 this.knockback(serverLevel, player, livingEntity);
             }
@@ -89,8 +90,8 @@ public class MaceItem extends Item implements ExtendedItem {
     }
 
     @Override
-    public Multimap<Attribute, AttributeModifier> getDefaultAttributeModifiers(EquipmentSlot equipmentSlot) {
-        if (equipmentSlot == EquipmentSlot.MAINHAND) {
+    public Multimap<Attribute, AttributeModifier> getDefaultAttributeModifiers(EquipmentSlotType equipmentSlot) {
+        if (equipmentSlot == EquipmentSlotType.MAINHAND) {
             if (ATTRIBUTES == null) {
                 ATTRIBUTES = ImmutableMultimap
                         .<Attribute, AttributeModifier>builder()
@@ -111,37 +112,38 @@ public class MaceItem extends Item implements ExtendedItem {
 
     @Override
     public boolean isValidRepairItem(ItemStack itemStack, ItemStack itemStack2) {
-        return itemStack2.is(Items.BLAZE_ROD);
+        return itemStack2.getItem().equals(Items.BLAZE_ROD);
     }
 
     @Override
-    public float getAttackDamageBonus(Player player, float f) {
+    public float getAttackDamageBonus(PlayerEntity player, float f) {
         return player.fallDistance > MacedConfig.SMASH_ATTACK_FALL_THRESHOLD.get().floatValue() ? f * 0.5f * player.fallDistance : 0.0f;
     }
 
-    private void knockback(Level level, Player player, Entity entity) {
+    private void knockback(World level, PlayerEntity player, Entity entity) {
         level.getEntitiesOfClass(
                 LivingEntity.class,
                 entity.getBoundingBox().inflate(MacedConfig.SMASH_ATTACK_KNOCKBACK_RADIUS.get()),
                 livingEntity -> livingEntity != player &&
                         livingEntity != entity &&
                         !entity.isAlliedTo(livingEntity) &&
-                        (!(livingEntity instanceof ArmorStand) || !((ArmorStand) livingEntity).isMarker()) &&
+                        (!(livingEntity instanceof ArmorStandEntity) || !((ArmorStandEntity) livingEntity).isMarker()) &&
                         entity.distanceToSqr(livingEntity) <= Math.pow(MacedConfig.SMASH_ATTACK_KNOCKBACK_RADIUS.get(), 2.0)
         ).forEach(livingEntity -> {
-            Vec3 vec3 = livingEntity.position().subtract(entity.position());
+            Vector3d vec3 = livingEntity.position().subtract(entity.position());
             double d = (MacedConfig.SMASH_ATTACK_KNOCKBACK_RADIUS.get() - vec3.length()) *
                     MacedConfig.SMASH_ATTACK_KNOCKBACK_POWER.get() *
                     (1.0 - livingEntity.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE));
-            Vec3 vec32 = vec3.normalize().scale(d);
+            Vector3d vec32 = vec3.normalize().scale(d);
             if (d > 0.0) {
                 livingEntity.push(vec32.x, MacedConfig.SMASH_ATTACK_KNOCKBACK_POWER.get(), vec32.z);
-                if (level instanceof ServerLevel serverLevel) {
-                    BlockPos blockPos = livingEntity.getOnPos();
-                    Vec3 vec33 = Vec3.atCenterOf(blockPos).add(0.0, 0.5, 0.0);
+                if (level instanceof ServerWorld) {
+                    BlockPos blockPos = Utilities.getOnPos(livingEntity);
+                    Vector3d vec33 = Vector3d.atCenterOf(blockPos).add(0.0, 0.5, 0.0);
                     int i = (int) (100.0 * d);
+                    final ServerWorld serverLevel = (ServerWorld) level;
                     serverLevel.sendParticles(
-                            new BlockParticleOption(ParticleTypes.BLOCK, serverLevel.getBlockState(blockPos)),
+                            new BlockParticleData(ParticleTypes.BLOCK, serverLevel.getBlockState(blockPos)),
                             vec33.x, vec33.y, vec33.z,
                             i, 0.3f, 0.3f, 0.3f, 0.15f
                     );
