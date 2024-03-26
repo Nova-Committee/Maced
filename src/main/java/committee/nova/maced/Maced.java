@@ -3,7 +3,7 @@ package committee.nova.maced;
 import committee.nova.maced.config.MacedConfig;
 import committee.nova.maced.init.MacedItems;
 import committee.nova.maced.init.MacedSounds;
-import fuzs.forgeconfigapiport.fabric.api.forge.v4.ForgeConfigRegistry;
+import fuzs.forgeconfigapiport.api.config.v2.ForgeConfigRegistry;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.world.item.CreativeModeTabs;
