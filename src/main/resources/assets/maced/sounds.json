@@ -1,0 +1,25 @@
+{
+  "item.mace.smash_air": {
+    "sounds": [
+      "maced:item/mace/smash_air1",
+      "maced:item/mace/smash_air2",
+      "maced:item/mace/smash_air3"
+    ],
+    "subtitle": "subtitles.item.mace.smash_air"
+  },
+  "item.mace.smash_ground": {
+    "sounds": [
+      "maced:item/mace/smash_ground1",
+      "maced:item/mace/smash_ground2",
+      "maced:item/mace/smash_ground3",
+      "maced:item/mace/smash_ground4"
+    ],
+    "subtitle": "subtitles.item.mace.smash_ground"
+  },
+  "item.mace.smash_ground_heavy": {
+    "sounds": [
+      "maced:item/mace/smash_ground_heavy"
+    ],
+    "subtitle": "subtitles.item.mace.smash_ground"
+  }
+}
