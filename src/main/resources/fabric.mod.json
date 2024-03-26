@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "maced",
+  "version": "${version}",
+  "name": "Maced",
+  "description": "A backport for the mace item",
+  "authors": [
+    "Tapio"
+  ],
+  "contact": {
+    "repo": "https://github.com/Nova-Committee/Maced"
+  },
+  "license": "LGPL-3.0",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "committee.nova.maced.Maced"
+    ]
+  },
+  "mixins": [
+    "maced.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": "*",
+    "fabric": "*",
+    "minecraft": "*"
+  }
+}
