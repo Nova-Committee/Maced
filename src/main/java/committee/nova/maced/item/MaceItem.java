@@ -64,7 +64,7 @@ public class MaceItem extends Item implements ExtendedItem {
         Utilities.hurtAndBreak(itemStack, 1, livingEntity2, EquipmentSlot.MAINHAND);
         if (livingEntity2 instanceof ServerPlayer player) {
             if (player.fallDistance > MacedConfig.SMASH_ATTACK_FALL_THRESHOLD.get().floatValue()) {
-                ServerLevel serverLevel = (ServerLevel) livingEntity2.level();
+                ServerLevel serverLevel = (ServerLevel) livingEntity2.level;
                 final ExtendedServerPlayer extended = (ExtendedServerPlayer) player;
                 Vec3 impact;
                 if (
@@ -75,7 +75,7 @@ public class MaceItem extends Item implements ExtendedItem {
                     extended.maced$setCurrentImpulseImpactPos(player.position());
                     extended.maced$setIgnoreFallDamageFromCurrentImpulse(true);
                 }
-                if (livingEntity.onGround()) {
+                if (livingEntity.isOnGround()) {
                     extended.maced$setSpawnExtraParticlesOnFall(true);
                     SoundEvent soundEvent = player.fallDistance > 5.0f ? MacedSounds.MACE_SMASH_GROUND_HEAVY.get() : MacedSounds.MACE_SMASH_GROUND.get();
                     serverLevel.playSound(null, player.getX(), player.getY(), player.getZ(), soundEvent, SoundSource.NEUTRAL, 1.0f, 1.0f);
@@ -138,7 +138,7 @@ public class MaceItem extends Item implements ExtendedItem {
                 livingEntity.push(vec32.x, MacedConfig.SMASH_ATTACK_KNOCKBACK_POWER.get(), vec32.z);
                 if (level instanceof ServerLevel serverLevel) {
                     BlockPos blockPos = livingEntity.getOnPos();
-                    Vec3 vec33 = blockPos.getCenter().add(0.0, 0.5, 0.0);
+                    Vec3 vec33 = Vec3.atCenterOf(blockPos).add(0.0, 0.5, 0.0);
                     int i = (int) (100.0 * d);
                     serverLevel.sendParticles(
                             new BlockParticleOption(ParticleTypes.BLOCK, serverLevel.getBlockState(blockPos)),

@@ -2,7 +2,6 @@ package committee.nova.maced.mixin;
 
 import committee.nova.maced.api.ExtendedItem;
 import committee.nova.maced.api.ExtendedPlayer;
-import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.world.InteractionHand;
@@ -75,7 +74,8 @@ public abstract class MixinPlayer extends LivingEntity implements ExtendedPlayer
     @Inject(method = "addAdditionalSaveData", at = @At("TAIL"))
     private void inject$addAdditionalSaveData(CompoundTag tag, CallbackInfo ci) {
         if (this.maced$currentImpulseImpactPos != null) {
-            tag.put("current_explosion_impact_pos", Util.getOrThrow(Vec3.CODEC.encodeStart(NbtOps.INSTANCE, this.maced$currentImpulseImpactPos), IllegalStateException::new));
+            tag.put("current_explosion_impact_pos", Vec3.CODEC.encodeStart(NbtOps.INSTANCE, this.maced$currentImpulseImpactPos).getOrThrow(true, LOGGER::error));
+            // TODO: Available?
         }
         tag.putBoolean("ignore_fall_damage_from_current_explosion", this.maced$ignoreFallDamageFromCurrentImpulse);
     }
