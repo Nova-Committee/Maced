@@ -5,10 +5,15 @@
   "compatibilityLevel": "JAVA_8",
   "refmap": "maced.refmap.json",
   "mixins": [
+    "MixinEnchantment",
+    "MixinLivingEntity",
     "MixinPlayer",
     "MixinServerPlayer"
   ],
   "injectors": {
     "defaultRequire": 1
-  }
+  },
+  "client": [
+    "MixinLevelRenderer"
+  ]
 }

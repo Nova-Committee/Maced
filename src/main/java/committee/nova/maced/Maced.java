@@ -1,7 +1,9 @@
 package committee.nova.maced;
 
 import committee.nova.maced.config.MacedConfig;
+import committee.nova.maced.init.MacedEnchantments;
 import committee.nova.maced.init.MacedItems;
+import committee.nova.maced.init.MacedParticles;
 import committee.nova.maced.init.MacedSounds;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
@@ -18,7 +20,9 @@ public class Maced {
     public Maced() {
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, MacedConfig.CFG);
         final IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
+        MacedParticles.PARTICLES.register(bus);
         MacedItems.ITEMS.register(bus);
+        MacedEnchantments.ENCHANTMENTS.register(bus);
         MacedSounds.SOUNDS.register(bus);
         bus.addListener(this::onBuildCreativeModeTabContentsEvent);
     }
