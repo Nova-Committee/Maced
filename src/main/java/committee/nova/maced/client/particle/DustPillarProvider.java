@@ -24,9 +24,13 @@ public class DustPillarProvider
 
     static TerrainParticle createTerrainParticle(BlockParticleOption blockParticleOption, ClientLevel clientLevel, double d, double e, double f, double g, double h, double i) {
         BlockState blockState = blockParticleOption.getState();
-        if (blockState.isAir() || blockState.is(Blocks.MOVING_PISTON) || !blockState.shouldSpawnTerrainParticles()) {
+        if (blockState.isAir() || blockState.is(Blocks.MOVING_PISTON) || shouldNotSpawnTerrainParticles(blockState)) {
             return null;
         }
         return new TerrainParticle(clientLevel, d, e, f, g, h, i, blockState);
+    }
+
+    static boolean shouldNotSpawnTerrainParticles(BlockState state) {
+        return state.is(Blocks.BARRIER) || state.is(Blocks.STRUCTURE_VOID);
     }
 }
