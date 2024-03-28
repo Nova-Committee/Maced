@@ -14,7 +14,7 @@ public class MacedParticleUtils {
         double f;
         double e;
         double d;
-        Vec3 vec3 = blockPos.getCenter().add(0.0, 0.5, 0.0);
+        Vec3 vec3 = Vec3.atCenterOf(blockPos).add(0.0, 0.5, 0.0);
         BlockParticleOption blockParticleOption = new BlockParticleOption(MacedParticles.DUST_PILLAR.get(), levelAccessor.getBlockState(blockPos));
         int j = 0;
         while ((float) j < (float) i / 3.0f) {

@@ -1,7 +1,6 @@
 package committee.nova.maced.mixin;
 
 import committee.nova.maced.util.MacedCombatRules;
-import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -25,7 +24,7 @@ public abstract class MixinLivingEntity {
 
     @Inject(method = "getDamageAfterArmorAbsorb", at = @At("HEAD"), cancellable = true)
     private void inject$getDamageAfterArmorAbsorb(DamageSource pDamageSource, float pDamageAmount, CallbackInfoReturnable<Float> cir) {
-        if (!pDamageSource.is(DamageTypeTags.BYPASSES_ARMOR)) {
+        if (!pDamageSource.isBypassArmor()) {
             this.hurtArmor(pDamageSource, pDamageAmount);
             pDamageAmount = MacedCombatRules.getDamageAfterAbsorb(pDamageAmount, pDamageSource, (float) this.getArmorValue(), (float) this.getAttributeValue(Attributes.ARMOR_TOUGHNESS));
         }

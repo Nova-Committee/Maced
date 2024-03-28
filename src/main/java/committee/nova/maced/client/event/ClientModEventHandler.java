@@ -11,6 +11,6 @@ import net.minecraftforge.fml.common.Mod;
 public class ClientModEventHandler {
     @SubscribeEvent
     public static void onRegProvider(RegisterParticleProvidersEvent event) {
-        event.registerSpecial(MacedParticles.DUST_PILLAR.get(), new DustPillarProvider());
+        event.register(MacedParticles.DUST_PILLAR.get(), new DustPillarProvider());
     }
 }

@@ -18,7 +18,7 @@ public class Utilities {
     public static void hurtAndBreak(ItemStack stack, int i, LivingEntity livingEntity, EquipmentSlot equipmentSlot) {
         ServerPlayer serverPlayer = livingEntity instanceof ServerPlayer sp ? sp : null;
         Player player = livingEntity instanceof Player p ? p : null;
-        if (livingEntity.level().isClientSide || player != null && player.getAbilities().instabuild) {
+        if (livingEntity.level.isClientSide || player != null && player.getAbilities().instabuild) {
             return;
         }
         hurtAndBreak(stack, i, livingEntity.getRandom(), serverPlayer, () -> {

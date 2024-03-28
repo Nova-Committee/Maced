@@ -73,7 +73,7 @@ public class MaceItem extends Item implements ExtendedItem, Vanishable {
     public boolean hurtEnemy(ItemStack itemStack, LivingEntity livingEntity, LivingEntity livingEntity2) {
         Utilities.hurtAndBreak(itemStack, 1, livingEntity2, EquipmentSlot.MAINHAND);
         if (livingEntity2 instanceof ServerPlayer player && canSmashAttack(player)) {
-            ServerLevel serverLevel = (ServerLevel) livingEntity2.level();
+            ServerLevel serverLevel = (ServerLevel) livingEntity2.level;
             final ExtendedServerPlayer extended = (ExtendedServerPlayer) player;
             Vec3 impact;
             if (
@@ -86,7 +86,7 @@ public class MaceItem extends Item implements ExtendedItem, Vanishable {
             }
             player.setDeltaMovement(player.getDeltaMovement().with(Direction.Axis.Y, 0.0));
             player.connection.send(new ClientboundSetEntityMotionPacket(player));
-            if (player.onGround()) {
+            if (player.isOnGround()) {
                 extended.maced$setSpawnExtraParticlesOnFall(true);
                 SoundEvent soundEvent = player.fallDistance > 5.0f ? MacedSounds.MACE_SMASH_GROUND_HEAVY.get() : MacedSounds.MACE_SMASH_GROUND.get();
                 serverLevel.playSound(null, player.getX(), player.getY(), player.getZ(), soundEvent, SoundSource.NEUTRAL, 1.0f, 1.0f);
