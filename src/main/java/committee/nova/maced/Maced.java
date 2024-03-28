@@ -1,7 +1,9 @@
 package committee.nova.maced;
 
 import committee.nova.maced.config.MacedConfig;
+import committee.nova.maced.init.MacedEnchantments;
 import committee.nova.maced.init.MacedItems;
+import committee.nova.maced.init.MacedParticles;
 import committee.nova.maced.init.MacedSounds;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.neoforged.bus.api.IEventBus;
@@ -16,7 +18,9 @@ public class Maced {
 
     public Maced(IEventBus bus) {
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, MacedConfig.CFG);
+        MacedParticles.PARTICLES.register(bus);
         MacedItems.ITEMS.register(bus);
+        MacedEnchantments.ENCHANTMENTS.register(bus);
         MacedSounds.SOUNDS.register(bus);
         bus.addListener(this::onBuildCreativeModeTabContentsEvent);
     }

@@ -23,7 +23,7 @@ public class MacedConfig {
         SMASH_ATTACK_KNOCKBACK_RADIUS = builder
                 .defineInRange("smashAttackKnockbackRadius", 2.5, .0, 10.0);
         SMASH_ATTACK_KNOCKBACK_POWER = builder
-                .defineInRange("smashAttackKnockbackPower", .6, .0, 5.0);
+                .defineInRange("smashAttackKnockbackPower", .7, .0, 5.0);
         builder.pop();
         CFG = builder.build();
     }
