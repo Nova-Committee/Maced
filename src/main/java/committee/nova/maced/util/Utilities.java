@@ -3,7 +3,6 @@ package committee.nova.maced.util;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.stats.Stats;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -13,6 +12,8 @@ import net.minecraft.world.item.enchantment.DigDurabilityEnchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Random;
 
 public class Utilities {
     public static void hurtAndBreak(ItemStack stack, int i, LivingEntity livingEntity, EquipmentSlot equipmentSlot) {
@@ -32,7 +33,7 @@ public class Utilities {
         });
     }
 
-    private static void hurtAndBreak(ItemStack stack, int i, RandomSource randomSource, @Nullable ServerPlayer serverPlayer, Runnable runnable) {
+    private static void hurtAndBreak(ItemStack stack, int i, Random random, @Nullable ServerPlayer serverPlayer, Runnable runnable) {
         int j;
         if (!stack.isDamageableItem()) {
             return;
@@ -41,7 +42,7 @@ public class Utilities {
             j = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.UNBREAKING, stack);
             int k = 0;
             for (int l = 0; j > 0 && l < i; ++l) {
-                if (!DigDurabilityEnchantment.shouldIgnoreDurabilityDrop(stack, j, randomSource)) continue;
+                if (!DigDurabilityEnchantment.shouldIgnoreDurabilityDrop(stack, j, random)) continue;
                 ++k;
             }
             if ((i -= k) <= 0) {

@@ -57,7 +57,7 @@ public class MaceItem extends Item implements ExtendedItem, Vanishable {
     }
 
     @Override
-    public int getEnchantmentValue(ItemStack stack) {
+    public int getItemEnchantability(ItemStack stack) {
         return 15;
     }
 
